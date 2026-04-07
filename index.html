@@ -452,7 +452,7 @@
 
     <script>
         // 配置
-        const API_BASE_URL = 'https://api.cpass.cc/pricing';
+        const API_BASE_URL = 'https://api.cpass.cc';
         const DEFAULT_API_KEY = 'sk-oOZjjFg8ZUs9mUZoY5deQSbi6zj0HV3XVtw7ibNAGwQA8ZXe';
         
         // DOM 元素
@@ -619,6 +619,9 @@
         async function generatePrompt(apiKey, imageBase64) {
             const model = modelSelect.value;
             
+            console.log('Calling API:', `${API_BASE_URL}/v1/chat/completions`);
+            console.log('Model:', model);
+            
             const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {
@@ -672,8 +675,21 @@
             });
             
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error?.message || `请求失败: ${response.status}`);
+                const text = await response.text();
+                console.error('API Error Response:', text);
+                let errorMessage = `请求失败: ${response.status}`;
+                try {
+                    const errorData = JSON.parse(text);
+                    errorMessage = errorData.error?.message || errorMessage;
+                } catch (e) {
+                    // 如果不是 JSON，可能是 HTML 错误页面
+                    if (text.includes('<!doctype') || text.includes('<!DOCTYPE')) {
+                        errorMessage = `API 返回 HTML 页面而非 JSON，可能是端点错误或跨域问题。状态码: ${response.status}`;
+                    } else {
+                        errorMessage = text.substring(0, 200) || errorMessage;
+                    }
+                }
+                throw new Error(errorMessage);
             }
             
             const data = await response.json();
