@@ -36,7 +36,19 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            user-select: none;
         }
+        .section-title:hover { color: #667eea; }
+        .section-content {
+            display: none;
+        }
+        .section-content.show { display: block; }
+        .toggle-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        .toggle-icon.rotate { transform: rotate(180deg); }
         
         input[type="password"], select {
             width: 100%;
@@ -179,12 +191,17 @@
         <p class="subtitle">使用 Moonshot AI 自动分析图片并生成提示词</p>
         
         <div class="section">
-            <div class="section-title">🔑 API 设置</div>
-            <input type="password" id="apiKey" placeholder="请输入 Moonshot API Key" value="sk-HTvVqlqxSdeHTluXY3BWzxG3lqp2b78nYxOjzDy2bvkzYhyH">
-            <select id="model">
-                <option value="moonshot-v1-8k-vision-preview">moonshot-v1-8k-vision-preview</option>
-                <option value="moonshot-v1-32k-vision-preview">moonshot-v1-32k-vision-preview</option>
-            </select>
+            <div class="section-title" id="apiToggle">
+                🔑 API 设置
+                <span class="toggle-icon" id="apiToggleIcon">▼</span>
+            </div>
+            <div class="section-content" id="apiContent">
+                <input type="password" id="apiKey" placeholder="请输入 Moonshot API Key" value="sk-HTvVqlqxSdeHTluXY3BWzxG3lqp2b78nYxOjzDy2bvkzYhyH">
+                <select id="model">
+                    <option value="moonshot-v1-8k-vision-preview">moonshot-v1-8k-vision-preview</option>
+                    <option value="moonshot-v1-32k-vision-preview">moonshot-v1-32k-vision-preview</option>
+                </select>
+            </div>
         </div>
         
         <div class="section">
@@ -244,8 +261,17 @@
         const apiKey = document.getElementById('apiKey');
         const model = document.getElementById('model');
         const copyBtn = document.getElementById('copyBtn');
+        const apiToggle = document.getElementById('apiToggle');
+        const apiContent = document.getElementById('apiContent');
+        const apiToggleIcon = document.getElementById('apiToggleIcon');
         
         let imageBase64 = null;
+        
+        // API 设置折叠/展开
+        apiToggle.onclick = () => {
+            apiContent.classList.toggle('show');
+            apiToggleIcon.classList.toggle('rotate');
+        };
         
         // 点击上传
         uploadBox.onclick = (e) => {
