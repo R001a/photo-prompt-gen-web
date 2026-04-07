@@ -615,25 +615,19 @@
             }
         });
         
-        // 调用 Gemini API (OpenAI 兼容格式)
+        // 调用 Gemini API (原生格式)
         async function generatePrompt(apiKey, imageBase64) {
             const model = modelSelect.value;
+            const apiUrl = `${API_BASE_URL}/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
-            console.log('Calling API:', `${API_BASE_URL}/v1/chat/completions`);
-            console.log('Model:', model);
+            console.log('Calling API:', apiUrl);
             
-            const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `你是一个专业的写真提示词生成专家。请分析用户上传的参考图片，并按照以下固定模板格式生成提示词：
+            const requestBody = {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: `你是一个专业的写真提示词生成专家。请分析用户上传的参考图片，并按照以下固定模板格式生成提示词：
 
 固定开头（必须一字不差）：
 严格保持参考用户图1的人物五官、脸型特征和发型不变。参考参考图1的服饰和背景以及画面风格，参照参考图1的动作，保持参考图的景别，注意头身比例要完美，生产一张写真。
@@ -652,26 +646,31 @@
 要求：
 - 保持简洁，每个维度1-2句话
 - 使用专业摄影术语
-- 整体控制在200-300字左右`
-                        },
-                        {
-                            role: 'user',
-                            content: [
-                                {
-                                    type: 'image_url',
-                                    image_url: {
-                                        url: `data:image/jpeg;base64,${imageBase64}`
-                                    }
-                                },
-                                {
-                                    type: 'text',
-                                    text: '请分析这张参考图片，按照模板格式生成写真提示词。'
+- 整体控制在200-300字左右
+
+请分析这张参考图片，按照模板格式生成写真提示词。`
+                            },
+                            {
+                                inlineData: {
+                                    mimeType: "image/jpeg",
+                                    data: imageBase64
                                 }
-                            ]
-                        }
-                    ],
-                    temperature: 0.7
-                })
+                            }
+                        ]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 2048
+                }
+            };
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
             });
             
             if (!response.ok) {
@@ -680,20 +679,27 @@
                 let errorMessage = `请求失败: ${response.status}`;
                 try {
                     const errorData = JSON.parse(text);
-                    errorMessage = errorData.error?.message || errorMessage;
+                    errorMessage = errorData.error?.message || JSON.stringify(errorData);
                 } catch (e) {
-                    // 如果不是 JSON，可能是 HTML 错误页面
                     if (text.includes('<!doctype') || text.includes('<!DOCTYPE')) {
                         errorMessage = `API 返回 HTML 页面而非 JSON，可能是端点错误或跨域问题。状态码: ${response.status}`;
                     } else {
-                        errorMessage = text.substring(0, 200) || errorMessage;
+                        errorMessage = text.substring(0, 500) || errorMessage;
                     }
                 }
                 throw new Error(errorMessage);
             }
             
             const data = await response.json();
-            return data.choices[0].message.content;
+            
+            // Gemini API 返回格式与 OpenAI 不同
+            if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                return data.candidates[0].content.parts[0].text;
+            } else if (data.error) {
+                throw new Error(data.error.message || 'API 返回错误');
+            } else {
+                throw new Error('无法解析 API 响应');
+            }
         }
         
         // 复制提示词
