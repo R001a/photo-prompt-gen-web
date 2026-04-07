@@ -3,376 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真提示词生成器 - Moonshot AI</title>
+    <title>写真提示词生成器</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
-        
         .container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
             border-radius: 20px;
+            padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 900px;
-            width: 100%;
-            padding: 40px;
         }
+        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .api-section {
+        .section {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-        
-        .api-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
+        .section-title {
             font-weight: 600;
             color: #333;
-        }
-        
-        .api-input-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .api-input {
-            flex: 1;
-            min-width: 250px;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        .api-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .api-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        
-        .api-btn:hover {
-            background: #5a6fd6;
-        }
-        
-        .api-status {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #666;
-        }
-        
-        .api-status.saved {
-            color: #2e7d32;
-        }
-        
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 50px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #fafafa;
-            margin-bottom: 25px;
-        }
-        
-        .upload-area:hover {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-        
-        .upload-area.has-image {
-            border-style: solid;
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-        
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .upload-hint {
-            color: #999;
-            font-size: 13px;
-        }
-        
-        #fileInput {
-            display: none;
-        }
-        
-        .preview-container {
-            display: none;
-            position: relative;
-        }
-        
-        .preview-container.show {
-            display: block;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .remove-image {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 30px;
-            height: 30px;
-            background: #ff5252;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .generate-section {
-            text-align: center;
-            margin: 25px 0;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 50px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        .loading.show {
-            display: block;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .result-area {
-            display: none;
-            margin-top: 25px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .result-area.show {
-            display: block;
-        }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .result-label {
-            font-weight: bold;
-            color: #333;
-            font-size: 16px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .result-actions {
-            display: flex;
-            gap: 10px;
+        input[type="password"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
         }
         
+        .upload-box {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .upload-box.has-image {
+            border-style: solid;
+            border-color: #667eea;
+            background: #f8f9ff;
+            padding: 20px;
+        }
+        .upload-icon { font-size: 40px; margin-bottom: 10px; }
+        .upload-text { color: #666; font-size: 16px; }
+        .upload-hint { color: #999; font-size: 13px; margin-top: 8px; }
+        
+        #preview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            display: none;
+        }
+        #preview.show { display: block; margin: 0 auto; }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: transform 0.2s;
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.show { display: block; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .result {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .result.show { display: block; }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .result-title { font-weight: 600; color: #333; }
         .result-text {
-            color: #444;
-            line-height: 1.9;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
             font-size: 14px;
+            line-height: 1.8;
             white-space: pre-wrap;
             word-wrap: break-word;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #e8e8e8;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
             max-height: 400px;
             overflow-y: auto;
         }
-        
-        .icon-btn {
-            background: white;
-            border: 1px solid #e0e0e0;
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.2s;
-        }
-        
-        .icon-btn:hover {
-            background: #f5f5f5;
-            border-color: #667eea;
         }
         
         .error {
             display: none;
             background: #ffebee;
             color: #c62828;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border-left: 4px solid #ef5350;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
-        
-        .error.show {
-            display: block;
-        }
+        .error.show { display: block; }
         
         .tips {
             background: #e3f2fd;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 25px;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
         }
-        
-        .tips-title {
-            font-weight: 600;
-            color: #1565c0;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .tips-list {
-            color: #555;
-            font-size: 13px;
-            line-height: 1.8;
-            padding-left: 20px;
-        }
-        
-        .tips-list li {
-            margin-bottom: 5px;
-        }
-        
-        code {
-            background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Consolas', monospace;
-            font-size: 12px;
-        }
-        
-        .model-select {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-        }
-        
-        .model-select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        .tips-title { font-weight: 600; color: #1565c0; margin-bottom: 8px; }
+        .tips-list { color: #555; font-size: 13px; padding-left: 18px; }
+        .tips-list li { margin-bottom: 5px; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -380,178 +178,108 @@
         <h1>📸 写真提示词生成器</h1>
         <p class="subtitle">使用 Moonshot AI 自动分析图片并生成提示词</p>
         
-        <!-- API Key 设置 -->
-        <div class="api-section">
-            <div class="api-header">
-                🔑 API 设置
-                <span style="font-weight: normal; color: #999; font-size: 13px;">（仅保存在本地浏览器）</span>
-            </div>
-            <div class="api-input-group">
-                <input type="password" class="api-input" id="apiKeyInput" placeholder="请输入 Moonshot API Key" value="sk-HTvVqlqxSdeHTluXY3BWzxG3lqp2b78nYxOjzDy2bvkzYhyH">
-                <select class="model-select" id="modelSelect">
-                    <option value="moonshot-v1-8k-vision-preview">moonshot-v1-8k-vision-preview</option>
-                    <option value="moonshot-v1-32k-vision-preview">moonshot-v1-32k-vision-preview</option>
-                </select>
-                <button class="api-btn" id="saveApiBtn">保存</button>
-            </div>
-            <div class="api-status" id="apiStatus"></div>
+        <div class="section">
+            <div class="section-title">🔑 API 设置</div>
+            <input type="password" id="apiKey" placeholder="请输入 Moonshot API Key" value="sk-HTvVqlqxSdeHTluXY3BWzxG3lqp2b78nYxOjzDy2bvkzYhyH">
+            <select id="model">
+                <option value="moonshot-v1-8k-vision-preview">moonshot-v1-8k-vision-preview</option>
+                <option value="moonshot-v1-32k-vision-preview">moonshot-v1-32k-vision-preview</option>
+            </select>
         </div>
         
-        <!-- 上传区域 -->
-        <div class="upload-area" id="uploadArea">
-            <div class="preview-container" id="previewContainer">
-                <img class="preview-image" id="previewImage" alt="预览">
-                <button class="remove-image" id="removeImage">×</button>
+        <div class="section">
+            <div class="section-title">📤 上传图片</div>
+            <div class="upload-box" id="uploadBox">
+                <img id="preview" alt="预览">
+                <div id="uploadContent">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">点击上传图片</div>
+                    <div class="upload-hint">支持拖拽、截图粘贴 (Ctrl+V)</div>
+                </div>
             </div>
-            <div class="upload-placeholder" id="uploadPlaceholder">
-                <div class="upload-icon">📤</div>
-                <div class="upload-text">点击或拖拽上传图片</div>
-                <div class="upload-hint">支持截图粘贴 (Ctrl+V / Cmd+V)</div>
-            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
         </div>
         
-        <input type="file" id="fileInput" accept="image/*">
+        <button class="btn" id="generateBtn" disabled>✨ 生成提示词</button>
         
-        <!-- 生成按钮 -->
-        <div class="generate-section">
-            <button class="btn" id="generateBtn" disabled>
-                ✨ 生成提示词
-            </button>
-        </div>
-        
-        <!-- 加载中 -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <div class="loading-text">AI 正在分析图片，请稍候...</div>
+            <div>AI 正在分析图片...</div>
         </div>
         
-        <!-- 错误提示 -->
         <div class="error" id="error"></div>
         
-        <!-- 结果区域 -->
-        <div class="result-area" id="resultArea">
+        <div class="result" id="result">
             <div class="result-header">
-                <div class="result-label">🎯 生成的提示词</div>
-                <div class="result-actions">
-                    <button class="icon-btn" id="copyBtn">📋 复制</button>
-                </div>
+                <span class="result-title">🎯 生成的提示词</span>
+                <button class="copy-btn" id="copyBtn">复制</button>
             </div>
             <div class="result-text" id="resultText"></div>
         </div>
         
-        <!-- 使用提示 -->
         <div class="tips">
             <div class="tips-title">💡 使用说明</div>
             <ul class="tips-list">
-                <li>首次使用需要在上方输入 Moonshot API Key（<a href="https://platform.moonshot.cn" target="_blank">点击获取</a>）</li>
-                <li>API Key 仅保存在你的浏览器本地，不会上传到任何服务器</li>
-                <li>支持直接截图后按 <code>Ctrl+V</code> / <code>Cmd+V</code> 粘贴上传</li>
-                <li>生成的提示词可直接用于 Midjourney、Stable Diffusion 等 AI 绘画工具</li>
+                <li>API Key 已预填，可直接使用</li>
+                <li>支持截图后按 <code>Ctrl+V</code> 粘贴上传</li>
+                <li>生成的提示词包含反向提示词，减少手部畸形问题</li>
             </ul>
         </div>
     </div>
 
     <script>
         // 配置
-        const API_BASE_URL = 'https://api.moonshot.cn';
-        const DEFAULT_API_KEY = 'sk-HTvVqlqxSdeHTluXY3BWzxG3lqp2b78nYxOjzDy2bvkzYhyH';
+        const API_URL = 'https://api.moonshot.cn/v1/chat/completions';
         
-        // DOM 元素
-        const uploadArea = document.getElementById('uploadArea');
-        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-        const previewContainer = document.getElementById('previewContainer');
-        const previewImage = document.getElementById('previewImage');
-        const removeImageBtn = document.getElementById('removeImage');
+        // 获取元素
+        const uploadBox = document.getElementById('uploadBox');
+        const uploadContent = document.getElementById('uploadContent');
+        const preview = document.getElementById('preview');
         const fileInput = document.getElementById('fileInput');
         const generateBtn = document.getElementById('generateBtn');
         const loading = document.getElementById('loading');
-        const resultArea = document.getElementById('resultArea');
+        const result = document.getElementById('result');
         const resultText = document.getElementById('resultText');
         const error = document.getElementById('error');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const modelSelect = document.getElementById('modelSelect');
-        const saveApiBtn = document.getElementById('saveApiBtn');
-        const apiStatus = document.getElementById('apiStatus');
+        const apiKey = document.getElementById('apiKey');
+        const model = document.getElementById('model');
         const copyBtn = document.getElementById('copyBtn');
         
-        // 状态
-        let currentImageBase64 = null;
-        let currentImageType = null;
-        let savedApiKey = localStorage.getItem('moonshot_api_key') || DEFAULT_API_KEY;
-        
-        // 初始化
-        if (savedApiKey) {
-            apiKeyInput.value = savedApiKey;
-            apiStatus.textContent = '✓ API Key 已加载';
-            apiStatus.classList.add('saved');
-        }
-        
-        // 保存 API Key
-        saveApiBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('moonshot_api_key', key);
-                savedApiKey = key;
-                apiStatus.textContent = '✓ API Key 已保存到本地';
-                apiStatus.classList.add('saved');
-            } else {
-                localStorage.removeItem('moonshot_api_key');
-                savedApiKey = DEFAULT_API_KEY;
-                apiStatus.textContent = '';
-                apiStatus.classList.remove('saved');
-            }
-        });
+        let imageBase64 = null;
         
         // 点击上传
-        uploadArea.addEventListener('click', (e) => {
-            if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
-                fileInput.click();
-            }
-        });
+        uploadBox.onclick = (e) => {
+            if (e.target !== preview) fileInput.click();
+        };
         
         // 文件选择
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
+        fileInput.onchange = (e) => {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        };
         
-        // 拖拽上传
-        uploadArea.addEventListener('dragover', (e) => {
+        // 拖拽
+        uploadBox.ondragover = (e) => {
             e.preventDefault();
-            uploadArea.style.borderColor = '#667eea';
-            uploadArea.style.background = '#f0f4ff';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            if (!currentImageBase64) {
-                uploadArea.style.borderColor = '#ddd';
-                uploadArea.style.background = '#fafafa';
-            }
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
+            uploadBox.style.borderColor = '#667eea';
+        };
+        uploadBox.ondragleave = () => {
+            if (!imageBase64) uploadBox.style.borderColor = '#ddd';
+        };
+        uploadBox.ondrop = (e) => {
             e.preventDefault();
-            if (!currentImageBase64) {
-                uploadArea.style.borderColor = '#ddd';
-                uploadArea.style.background = '#fafafa';
-            }
-            if (e.dataTransfer.files.length > 0) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        };
         
-        // 粘贴上传
-        document.addEventListener('paste', (e) => {
+        // 粘贴
+        document.onpaste = (e) => {
             const items = e.clipboardData.items;
             for (let item of items) {
                 if (item.type.startsWith('image/')) {
-                    const blob = item.getAsFile();
-                    handleFile(blob);
+                    handleFile(item.getAsFile());
                     break;
                 }
             }
-        });
+        };
         
         // 处理文件
         function handleFile(file) {
@@ -559,81 +287,49 @@
                 showError('请上传图片文件');
                 return;
             }
-            
-            currentImageType = file.type;
             const reader = new FileReader();
             reader.onload = (e) => {
-                currentImageBase64 = e.target.result.split(',')[1];
-                previewImage.src = e.target.result;
-                uploadPlaceholder.style.display = 'none';
-                previewContainer.classList.add('show');
-                uploadArea.classList.add('has-image');
+                imageBase64 = e.target.result.split(',')[1];
+                preview.src = e.target.result;
+                preview.classList.add('show');
+                uploadContent.style.display = 'none';
+                uploadBox.classList.add('has-image');
                 generateBtn.disabled = false;
                 hideError();
             };
             reader.readAsDataURL(file);
         }
         
-        // 删除图片
-        removeImageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentImageBase64 = null;
-            currentImageType = null;
-            previewContainer.classList.remove('show');
-            uploadPlaceholder.style.display = 'block';
-            uploadArea.classList.remove('has-image');
-            generateBtn.disabled = true;
-            fileInput.value = '';
-            resultArea.classList.remove('show');
-        });
-        
         // 生成提示词
-        generateBtn.addEventListener('click', async () => {
-            if (!currentImageBase64) return;
+        generateBtn.onclick = async () => {
+            if (!imageBase64) return;
             
-            const apiKey = apiKeyInput.value.trim() || savedApiKey;
-            if (!apiKey) {
-                showError('请先输入 API Key');
-                apiKeyInput.focus();
+            const key = apiKey.value.trim();
+            if (!key) {
+                showError('请输入 API Key');
                 return;
             }
             
             loading.classList.add('show');
+            result.classList.remove('show');
             generateBtn.disabled = true;
-            resultArea.classList.remove('show');
             hideError();
             
             try {
-                const prompt = await generatePrompt(apiKey, currentImageBase64);
+                const prompt = await callAPI(key, imageBase64);
                 resultText.textContent = prompt;
-                resultArea.classList.add('show');
+                result.classList.add('show');
             } catch (err) {
-                showError(err.message || '生成失败，请检查 API Key 是否正确');
+                showError(err.message || '生成失败');
             } finally {
                 loading.classList.remove('show');
                 generateBtn.disabled = false;
             }
-        });
+        };
         
-        // 调用 Moonshot API (OpenAI 兼容格式)
-        async function generatePrompt(apiKey, imageBase64) {
-            const model = modelSelect.value;
-            
-            console.log('Calling Moonshot API:', `${API_BASE_URL}/v1/chat/completions`);
-            console.log('Model:', model);
-            
-            const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `你是一个专业的写真提示词生成专家。请分析用户上传的参考图片，并按照以下固定模板格式生成提示词：
+        // 调用 API
+        async function callAPI(key, imgData) {
+            const systemPrompt = `你是一个专业的写真提示词生成专家。请分析用户上传的参考图片，并按照以下固定模板格式生成提示词：
 
 【固定开头 - 必须一字不差】
 严格保持参考用户图1的人物五官、脸型特征和发型不变。参考参考图1的服饰和背景以及画面风格，参照参考图1的动作，保持参考图的景别，注意头身比例要完美，生产一张写真。
@@ -664,21 +360,23 @@
 
 【反向提示词】
 在生成的提示词后面，加上以下内容：
-反向提示词：多手指，畸形手指，多余手指，手指粘连，手部畸形，变形的手，扭曲的手指，六指，七指，手指数量错误，手部结构错误，解剖学错误的手
-                        },
+反向提示词：多手指，畸形手指，多余手指，手指粘连，手部畸形，变形的手，扭曲的手指，六指，七指，手指数量错误，手部结构错误，解剖学错误的手`;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + key
+                },
+                body: JSON.stringify({
+                    model: model.value,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
                         {
                             role: 'user',
                             content: [
-                                {
-                                    type: 'image_url',
-                                    image_url: {
-                                        url: `data:image/jpeg;base64,${imageBase64}`
-                                    }
-                                },
-                                {
-                                    type: 'text',
-                                    text: '请分析这张参考图片，按照模板格式生成写真提示词。'
-                                }
+                                { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + imgData } },
+                                { type: 'text', text: '请分析这张参考图片，按照模板格式生成写真提示词。' }
                             ]
                         }
                     ],
@@ -688,42 +386,26 @@
             
             if (!response.ok) {
                 const text = await response.text();
-                console.error('API Error Response:', text);
-                let errorMessage = `请求失败: ${response.status}`;
-                try {
-                    const errorData = JSON.parse(text);
-                    errorMessage = errorData.error?.message || JSON.stringify(errorData);
-                } catch (e) {
-                    if (text.includes('<!doctype') || text.includes('<!DOCTYPE')) {
-                        errorMessage = `API 返回 HTML 页面而非 JSON，可能是端点错误或跨域问题。状态码: ${response.status}`;
-                    } else {
-                        errorMessage = text.substring(0, 500) || errorMessage;
-                    }
-                }
-                throw new Error(errorMessage);
+                throw new Error('请求失败: ' + response.status + ' - ' + text.substring(0, 200));
             }
             
             const data = await response.json();
             return data.choices[0].message.content;
         }
         
-        // 复制提示词
-        copyBtn.addEventListener('click', () => {
+        // 复制
+        copyBtn.onclick = () => {
             navigator.clipboard.writeText(resultText.textContent).then(() => {
-                copyBtn.textContent = '✓ 已复制';
-                setTimeout(() => {
-                    copyBtn.textContent = '📋 复制';
-                }, 2000);
+                copyBtn.textContent = '已复制';
+                setTimeout(() => copyBtn.textContent = '复制', 2000);
             });
-        });
+        };
         
-        // 显示错误
-        function showError(message) {
-            error.textContent = message;
+        // 错误处理
+        function showError(msg) {
+            error.textContent = msg;
             error.classList.add('show');
         }
-        
-        // 隐藏错误
         function hideError() {
             error.classList.remove('show');
         }
